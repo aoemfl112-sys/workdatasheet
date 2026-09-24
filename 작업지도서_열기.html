@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>작업지도서 열기</title>
+  <style>
+    :root {
+      --card: #ffffff;
+      --ink: #1e293b;
+      --muted: #64748b;
+      --accent: #0f766e;
+      --accent-dark: #0d5f59;
+      --line: #d7dee3;
+      --warn: #b45309;
+      --danger: #b91c1c;
+      --ok: #047857;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, #d9f3ef 0%, transparent 42%),
+        linear-gradient(160deg, #e8eef2, #f5f7f8 55%, #e7f1ef);
+    }
+    .card {
+      width: min(540px, 100%);
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 28px 24px 22px;
+      box-shadow: 0 12px 36px rgba(15, 23, 42, 0.08);
+    }
+    h1 { margin: 0 0 8px; font-size: 1.35rem; }
+    p {
+      margin: 0 0 16px;
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: 0.95rem;
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    input[type="text"] {
+      width: 100%;
+      height: 44px;
+      margin-bottom: 14px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      font-size: 1rem;
+    }
+    input:focus {
+      outline: 2px solid rgba(15, 118, 110, 0.25);
+      border-color: var(--accent);
+    }
+    .actions { display: flex; gap: 8px; }
+    button {
+      flex: 1;
+      height: 48px;
+      border: 0;
+      border-radius: 12px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button:hover { background: var(--accent-dark); }
+    button:disabled { opacity: 0.65; cursor: wait; }
+    button.secondary {
+      background: #e2e8f0;
+      color: var(--ink);
+      font-weight: 600;
+    }
+    button.secondary:hover { background: #cbd5e1; }
+    .url {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: #f1f5f4;
+      font-family: Consolas, monospace;
+      font-size: 0.9rem;
+      word-break: break-all;
+    }
+    .status {
+      margin-top: 12px;
+      min-height: 1.2em;
+      font-size: 0.92rem;
+      line-height: 1.45;
+      color: var(--warn);
+    }
+    .status.ok { color: var(--ok); }
+    .status.bad { color: var(--danger); }
+    .help {
+      display: none;
+      margin-top: 14px;
+      padding: 14px;
+      border: 1px solid #fecaca;
+      border-radius: 12px;
+      background: #fff7f7;
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+    .help.show { display: block; }
+    .help h2 {
+      margin: 0 0 8px;
+      font-size: 0.95rem;
+      color: var(--danger);
+    }
+    .help ol { margin: 0; padding-left: 1.2em; }
+    .help li { margin-bottom: 6px; }
+    .help code {
+      font-family: Consolas, monospace;
+      background: #fee2e2;
+      padding: 1px 5px;
+      border-radius: 4px;
+    }
+    .hint {
+      margin-top: 14px;
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+    .badge {
+      display: inline-block;
+      margin-bottom: 10px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #ccfbf1;
+      color: #0f766e;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <div class="badge">개인 클라우드 (Streamlit Cloud)</div>
+    <h1>작업지도서 열기</h1>
+    <p>
+      NAS가 아니라 <strong>Streamlit 개인 클라우드</strong>에 올린 앱으로 들어갑니다.<br />
+      주소는 처음 한 번만 입력하면 이 PC에 기억됩니다.
+    </p>
+
+    <label for="appUrl">앱 주소 (https://….streamlit.app)</label>
+    <input
+      id="appUrl"
+      type="text"
+      placeholder="예: https://work-worksheet.streamlit.app"
+      autocomplete="off"
+    />
+
+    <div class="actions">
+      <button id="openBtn" type="button">앱 열기</button>
+      <button id="checkBtn" class="secondary" type="button">연결 확인</button>
+    </div>
+    <div class="url" id="preview">https://-</div>
+    <div class="status" id="status"></div>
+
+    <div class="help" id="help">
+      <h2>앱에 연결되지 않습니다</h2>
+      <ol>
+        <li><code>CLOUD배포.txt</code> 안내에 따라 GitHub + Streamlit Cloud에
+          앱을 배포했는지 확인하세요.</li>
+        <li>Streamlit Cloud 대시보드에서 앱 상태가 <strong>Running</strong>인지 확인하세요.</li>
+        <li>주소가 <code>https://이름.streamlit.app</code> 형태인지 다시 확인하세요.</li>
+        <li>배포가 끝나면 여기 주소를 넣고 「연결 확인」→「앱 열기」를 누르세요.</li>
+      </ol>
+    </div>
+
+    <p class="hint">
+      ※ 이 HTML은 앱을 켜는 파일이 아니라, 클라우드 앱으로 들어가는 바로가기입니다.<br />
+      ※ 배포 방법은 같은 폴더의 <strong>CLOUD배포.txt</strong> 를 보세요.
+    </p>
+  </main>
+
+  <script>
+    (function () {
+      var KEY = "worksheet_cloud_launcher_v1";
+      var OLD_KEY = "worksheet_nas_launcher_v1";
+      var urlEl = document.getElementById("appUrl");
+      var preview = document.getElementById("preview");
+      var statusEl = document.getElementById("status");
+      var helpEl = document.getElementById("help");
+      var openBtn = document.getElementById("openBtn");
+      var checkBtn = document.getElementById("checkBtn");
+
+      function normalizeUrl(raw) {
+        var s = String(raw || "").trim();
+        if (!s) return "";
+        if (!/^https?:\/\//i.test(s)) s = "https://" + s;
+        return s.replace(/\/+$/, "");
+      }
+
+      function refreshPreview() {
+        preview.textContent = normalizeUrl(urlEl.value) || "https://앱이름.streamlit.app";
+      }
+
+      function setStatus(msg, kind) {
+        statusEl.textContent = msg || "";
+        statusEl.className = "status" + (kind ? " " + kind : "");
+      }
+
+      function showHelp(show) {
+        helpEl.classList.toggle("show", !!show);
+      }
+
+      function loadSaved() {
+        try {
+          var saved = JSON.parse(localStorage.getItem(KEY) || "null");
+          if (saved && saved.url) {
+            urlEl.value = saved.url;
+          } else {
+            // 예전 NAS 런처에 저장해 둔 값이 있어도 클라우드 URL이 아니면 무시
+            var old = JSON.parse(localStorage.getItem(OLD_KEY) || "null");
+            if (old && old.host && String(old.host).indexOf("streamlit.app") >= 0) {
+              urlEl.value = "https://" + old.host.replace(/^https?:\/\//i, "");
+            }
+          }
+        } catch (e) {}
+        refreshPreview();
+      }
+
+      function save(url) {
+        localStorage.setItem(KEY, JSON.stringify({ url: url }));
+      }
+
+      function setBusy(busy) {
+        openBtn.disabled = busy;
+        checkBtn.disabled = busy;
+      }
+
+      function probe(url) {
+        var controller = new AbortController();
+        var timer = setTimeout(function () {
+          controller.abort();
+        }, 5000);
+        return fetch(url + "/_stcore/health", {
+          mode: "no-cors",
+          cache: "no-store",
+          signal: controller.signal,
+        })
+          .then(function () {
+            clearTimeout(timer);
+            return true;
+          })
+          .catch(function () {
+            clearTimeout(timer);
+            return fetch(url, { mode: "no-cors", cache: "no-store" })
+              .then(function () {
+                return true;
+              })
+              .catch(function () {
+                return false;
+              });
+          });
+      }
+
+      function openApp(auto) {
+        var url = normalizeUrl(urlEl.value);
+        if (!url) {
+          setStatus("클라우드 앱 주소를 입력하세요.", "bad");
+          showHelp(false);
+          urlEl.focus();
+          return;
+        }
+        if (url.indexOf("192.168.") >= 0 || /:8501$/.test(url)) {
+          setStatus(
+            "지금은 개인 클라우드 방식입니다. https://….streamlit.app 주소를 넣으세요.",
+            "bad"
+          );
+          showHelp(true);
+          return;
+        }
+        save(url);
+        refreshPreview();
+        setBusy(true);
+        setStatus(auto ? "저장된 주소로 연결 확인 중…" : "연결 확인 중…", "");
+        showHelp(false);
+
+        probe(url).then(function (ok) {
+          setBusy(false);
+          if (ok) {
+            setStatus("연결됨. 앱으로 이동합니다…", "ok");
+            window.location.href = url;
+            return;
+          }
+          setStatus("연결 실패: 앱이 꺼져 있거나 주소가 잘못되었습니다.", "bad");
+          showHelp(true);
+        });
+      }
+
+      function checkOnly() {
+        var url = normalizeUrl(urlEl.value);
+        if (!url) {
+          setStatus("클라우드 앱 주소를 입력하세요.", "bad");
+          showHelp(false);
+          urlEl.focus();
+          return;
+        }
+        save(url);
+        refreshPreview();
+        setBusy(true);
+        setStatus("연결 확인 중…", "");
+        showHelp(false);
+        probe(url).then(function (ok) {
+          setBusy(false);
+          if (ok) {
+            setStatus("정상: 클라우드 앱이 켜져 있습니다. 「앱 열기」를 누르세요.", "ok");
+            showHelp(false);
+          } else {
+            setStatus("연결 실패: Streamlit Cloud에서 앱을 먼저 배포·실행하세요.", "bad");
+            showHelp(true);
+          }
+        });
+      }
+
+      urlEl.addEventListener("input", refreshPreview);
+      openBtn.addEventListener("click", function () {
+        openApp(false);
+      });
+      checkBtn.addEventListener("click", checkOnly);
+      urlEl.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") openApp(false);
+      });
+
+      loadSaved();
+      if (normalizeUrl(urlEl.value)) {
+        setTimeout(function () {
+          openApp(true);
+        }, 200);
+      } else {
+        urlEl.focus();
+        setStatus("처음이면 Streamlit Cloud 앱 주소를 입력하세요. (CLOUD배포.txt 참고)", "");
+      }
+    })();
+  </script>
+</body>
+</html>

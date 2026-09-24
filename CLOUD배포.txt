@@ -1,0 +1,81 @@
+개인 클라우드(Streamlit Cloud)로 배포하는 방법
+
+목표: 동료가 설치 없이 브라우저만으로 작업지도서를 쓰게 합니다.
+주소 예: https://본인앱이름.streamlit.app
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+준비물
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  1. GitHub 계정  (https://github.com)
+  2. Streamlit 계정  (https://share.streamlit.io  → GitHub로 로그인)
+  3. 이 폴더(nas_upload) 전체
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1단계) GitHub에 올리기
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  1. GitHub에서 New repository 만들기
+       - 이름 예: work-worksheet
+       - Public 권장 (Private도 가능, Streamlit에 권한 연결 필요)
+       - 회사 템플릿·사진이 민감하면 Private
+  2. 이 폴더 내용을 저장소에 업로드
+       A) GitHub 웹: Add file → Upload files → 이 폴더 파일 전부 끌어다 놓기
+       B) 또는 Git 사용:
+            git init
+            git add .
+            git commit -m "작업지도서 클라우드 배포"
+            git branch -M main
+            git remote add origin https://github.com/계정/work-worksheet.git
+            git push -u origin main
+
+  올리지 않아도 되는 것(이미 .gitignore에 있음):
+    venv/, output/*.pptx, saved_layouts/*.json, .env
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2단계) Streamlit Cloud에 연결
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  1. https://share.streamlit.io 접속 → GitHub 로그인
+  2. New app 클릭
+  3. 설정:
+       - Repository: 방금 만든 저장소
+       - Branch: main
+       - Main file path: app.py
+  4. Deploy!
+  5. 처음엔 몇 분 걸립니다. 상태가 Running 이 되면 끝.
+  6. 나온 주소 복사
+       예: https://work-worksheet-xxxx.streamlit.app
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+3단계) 직원 PC에서 쓰기
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  - 가장 편함: 작업지도서_열기.html 더블클릭
+      → 위 클라우드 주소를 한 번 입력 → 다음부터 바로 열림
+  - 또는 Chrome/Edge에서 클라우드 주소를 즐겨찾기
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+사용 시 참고
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  - 「이 PC에서 PPT 열기」는 클라우드에서는 없습니다. 「PPT 받기」로 다운로드하세요.
+  - 무료 플랜은 한동안 안 쓰면 잠잘 수 있습니다. 다시 열면 깨어납니다.
+  - 사진·PPT는 세션 동안만 처리되고, 서버에 영구 저장하지 않는 구조입니다.
+  - 코드를 고친 뒤 GitHub에 다시 올리면 Streamlit이 자동으로 다시 배포합니다.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+안 될 때
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  - Deploy 실패: requirements.txt / app.py 경로 확인
+  - 앱이 안 열림: Streamlit 대시보드에서 Reboot / Redeploy
+  - 회사망에서 streamlit.app 차단: IT에 허용 요청 또는 사내 서버 방식(NAS) 사용
+
+
+폴더 안 관련 파일
+  CLOUD배포.txt          ← 지금 보고 있는 안내
+  작업지도서_열기.html   ← 클라우드 주소 바로가기
+  app.py / requirements.txt / templates / config / engine
+  SERVER_MODE            ← 클라우드·서버에서 로컬 열기 버튼 숨김
+  NAS배포.txt            ← (예전) NAS Docker 방식. 지금은 클라우드 권장

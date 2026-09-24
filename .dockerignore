@@ -1,0 +1,16 @@
+venv/
+.venv/
+__pycache__/
+*.pyc
+.git/
+tests/
+output/
+nas_upload/
+*.md
+실행.bat
+scripts/ensure_port.py
+scripts/pack_nas.ps1
+app.log
+app.pid
+nas_start.sh
+nas_stop.sh

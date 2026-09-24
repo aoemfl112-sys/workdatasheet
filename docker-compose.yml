@@ -1,0 +1,14 @@
+services:
+  worksheet:
+    build: .
+    image: work-worksheet:latest
+    container_name: work-worksheet
+    ports:
+      - "8501:8501"
+    environment:
+      WORKSHEET_SERVER: "1"
+      TZ: Asia/Seoul
+    volumes:
+      - ./saved_layouts:/app/saved_layouts
+      - ./output:/app/output
+    restart: unless-stopped
