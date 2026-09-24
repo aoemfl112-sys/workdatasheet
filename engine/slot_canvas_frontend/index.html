@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+      user-select: none;
+    }
+    #hint {
+      color: #0f766e;
+      font-size: 13px;
+      font-weight: 600;
+      margin: 0 0 8px 0;
+    }
+    #slide {
+      position: relative;
+      width: 100%;
+      background: #ffffff;
+      border: 1px solid #b7c4bf;
+      border-radius: 10px;
+      overflow: hidden;
+      box-sizing: border-box;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+    }
+    #right {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      background: #f3f7f6;
+      color: #334155;
+      font-size: 12px;
+      padding: 12px 10px;
+      box-sizing: border-box;
+      pointer-events: none;
+      border-left: 1px solid #c5d4cf;
+    }
+    #right h2 {
+      margin: 0 0 8px 0;
+      font-size: 13px;
+      font-weight: 800;
+      color: #115e59;
+    }
+    #right p {
+      margin: 0 0 6px 0;
+      line-height: 1.35;
+    }
+    #photoBound {
+      position: absolute;
+      box-sizing: border-box;
+      border: 2px dashed #0f766e;
+      background: rgba(15, 118, 110, 0.03);
+      pointer-events: none;
+      z-index: 1;
+    }
+    #chromeTop, #chromeBottom {
+      position: absolute;
+      left: 0;
+      right: 0;
+      background: #ecf4f2;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .slot {
+      position: absolute;
+      box-sizing: border-box;
+      border: 2px solid #0f766e;
+      background: #e6f4f1;
+      overflow: hidden;
+      cursor: move;
+      touch-action: none;
+      z-index: 4;
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(15, 118, 110, 0.18);
+    }
+    .slot.selected {
+      border: 3px solid #c2410c;
+      z-index: 8;
+      box-shadow: 0 0 0 3px rgba(194, 65, 12, 0.25);
+    }
+    .slot img {
+      position: absolute;
+      inset: 24px 0 0 0;
+      width: 100%;
+      height: calc(100% - 24px);
+      object-fit: contain;
+      pointer-events: none;
+      background: #fff;
+    }
+    .caption {
+      position: absolute;
+      left: 0;
+      top: 0;
+      right: 0;
+      height: 24px;
+      background: #0f766e;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 24px;
+      padding: 0 8px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      pointer-events: none;
+    }
+    .slot.selected .caption { background: #c2410c; }
+    .empty {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 52%;
+      color: #0f766e;
+      font-size: 14px;
+      font-weight: 700;
+      text-align: center;
+      pointer-events: none;
+    }
+    .handle {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: #fff;
+      border: 2px solid #ea580c;
+      border-radius: 2px;
+      display: none;
+      z-index: 9;
+      box-sizing: border-box;
+    }
+    .slot.selected .handle { display: block; }
+    .handle.nw { left: -6px; top: -6px; cursor: nwse-resize; }
+    .handle.n { left: 50%; top: -6px; margin-left: -5px; cursor: ns-resize; }
+    .handle.ne { right: -6px; top: -6px; cursor: nesw-resize; }
+    .handle.e { right: -6px; top: 50%; margin-top: -5px; cursor: ew-resize; }
+    .handle.se { right: -6px; bottom: -6px; cursor: nwse-resize; }
+    .handle.s { left: 50%; bottom: -6px; margin-left: -5px; cursor: ns-resize; }
+    .handle.sw { left: -6px; bottom: -6px; cursor: nesw-resize; }
+    .handle.w { left: -6px; top: 50%; margin-top: -5px; cursor: ew-resize; }
+  </style>
+</head>
+<body>
+  <p id="hint">칸을 눌러 옮깁니다. 주황 점으로 크기를 바꿉니다. 점선 밖으로는 나가지 않습니다.</p>
+  <div id="slide"></div>
+  <script>
+    let payload = null;
+    let selectedId = null;
+    let seq = 0;
+    let dragging = false;
+    let drag = null;
+
+    function sendMessage(type, data) {
+      const message = Object.assign({ isStreamlitMessage: true, type: type }, data);
+      window.parent.postMessage(message, "*");
+    }
+    function setFrameHeight() {
+      const extra = 8;
+      sendMessage("streamlit:setFrameHeight", { height: document.body.scrollHeight + extra });
+    }
+    function sendValue(value) {
+      seq += 1;
+      value.seq = seq;
+      sendMessage("streamlit:setComponentValue", { value: value });
+    }
+    function clamp(box, area, minSize) {
+      const width = Math.min(Math.max(minSize, box.width_cm), area.width_cm);
+      const height = Math.min(Math.max(minSize, box.height_cm), area.height_cm);
+      const x = Math.min(Math.max(area.x_cm, box.x_cm), area.x_cm + area.width_cm - width);
+      const y = Math.min(Math.max(area.y_cm, box.y_cm), area.y_cm + area.height_cm - height);
+      return { id: box.id, x_cm: x, y_cm: y, width_cm: width, height_cm: height };
+    }
+    function applyBox(el, box, slideW, slideH) {
+      el.style.left = (box.x_cm / slideW * 100) + "%";
+      el.style.top = (box.y_cm / slideH * 100) + "%";
+      el.style.width = (box.width_cm / slideW * 100) + "%";
+      el.style.height = (box.height_cm / slideH * 100) + "%";
+    }
+    function clientToCm(event, slide) {
+      const rect = slide.getBoundingClientRect();
+      const point = event.touches ? event.touches[0] : event;
+      return {
+        x: (point.clientX - rect.left) / rect.width * payload.slide_width_cm,
+        y: (point.clientY - rect.top) / rect.height * payload.slide_height_cm
+      };
+    }
+    function currentBoxes() {
+      return payload.slots.map(function (slot) {
+        return {
+          id: slot.id,
+          x_cm: slot.x_cm,
+          y_cm: slot.y_cm,
+          width_cm: slot.width_cm,
+          height_cm: slot.height_cm
+        };
+      });
+    }
+    function findSlot(id) {
+      for (let i = 0; i < payload.slots.length; i += 1) {
+        if (payload.slots[i].id === id) return payload.slots[i];
+      }
+      return null;
+    }
+    function selectSlot(id) {
+      selectedId = id;
+      document.querySelectorAll(".slot").forEach(function (el) {
+        el.classList.toggle("selected", Number(el.dataset.id) === id);
+      });
+    }
+    function commit() {
+      sendValue({ type: "commit", selected_id: selectedId, slots: currentBoxes() });
+    }
+    function onPointerDown(event) {
+      if (!payload) return;
+      const handle = event.target.closest(".handle");
+      const slotEl = event.target.closest(".slot");
+      if (!slotEl) return;
+      event.preventDefault();
+      const slotId = Number(slotEl.dataset.id);
+      selectSlot(slotId);
+      const slot = findSlot(slotId);
+      if (!slot) return;
+      const start = clientToCm(event, document.getElementById("slide"));
+      if (slotEl.setPointerCapture && event.pointerId != null) {
+        slotEl.setPointerCapture(event.pointerId);
+      }
+      dragging = true;
+      drag = {
+        id: slotId,
+        mode: handle ? handle.dataset.handle : "move",
+        moved: false,
+        start: start,
+        orig: {
+          x_cm: slot.x_cm,
+          y_cm: slot.y_cm,
+          width_cm: slot.width_cm,
+          height_cm: slot.height_cm
+        }
+      };
+    }
+    function resizeFrom(mode, orig, dx, dy, minSize) {
+      let x = orig.x_cm;
+      let y = orig.y_cm;
+      let w = orig.width_cm;
+      let h = orig.height_cm;
+      const right = orig.x_cm + orig.width_cm;
+      const bottom = orig.y_cm + orig.height_cm;
+      if (mode.indexOf("e") !== -1) w = orig.width_cm + dx;
+      if (mode.indexOf("s") !== -1) h = orig.height_cm + dy;
+      if (mode.indexOf("w") !== -1) {
+        x = orig.x_cm + dx;
+        w = right - x;
+      }
+      if (mode.indexOf("n") !== -1) {
+        y = orig.y_cm + dy;
+        h = bottom - y;
+      }
+      if (w < minSize) {
+        if (mode.indexOf("w") !== -1) x = right - minSize;
+        w = minSize;
+      }
+      if (h < minSize) {
+        if (mode.indexOf("n") !== -1) y = bottom - minSize;
+        h = minSize;
+      }
+      return { x_cm: x, y_cm: y, width_cm: w, height_cm: h };
+    }
+    function onPointerMove(event) {
+      if (!dragging || !drag || !payload) return;
+      event.preventDefault();
+      const now = clientToCm(event, document.getElementById("slide"));
+      const dx = now.x - drag.start.x;
+      const dy = now.y - drag.start.y;
+      if (Math.abs(dx) + Math.abs(dy) > 0.04) drag.moved = true;
+      const slot = findSlot(drag.id);
+      if (!slot) return;
+      let next;
+      if (drag.mode === "move") {
+        next = {
+          id: drag.id,
+          x_cm: drag.orig.x_cm + dx,
+          y_cm: drag.orig.y_cm + dy,
+          width_cm: drag.orig.width_cm,
+          height_cm: drag.orig.height_cm
+        };
+      } else {
+        next = Object.assign({ id: drag.id }, resizeFrom(drag.mode, drag.orig, dx, dy, payload.min_size_cm));
+      }
+      next = clamp(next, payload.photo_area, payload.min_size_cm);
+      slot.x_cm = next.x_cm;
+      slot.y_cm = next.y_cm;
+      slot.width_cm = next.width_cm;
+      slot.height_cm = next.height_cm;
+      const el = document.querySelector('.slot[data-id="' + drag.id + '"]');
+      if (el) applyBox(el, slot, payload.slide_width_cm, payload.slide_height_cm);
+    }
+    function onPointerUp() {
+      if (!dragging) return;
+      const moved = !!(drag && drag.moved);
+      dragging = false;
+      drag = null;
+      if (moved) commit();
+    }
+    function render(nextPayload) {
+      payload = nextPayload;
+      if (!payload) return;
+      selectedId = Number(payload.selected_id);
+      const slide = document.getElementById("slide");
+      const width = slide.clientWidth || document.body.clientWidth || 900;
+      const height = Math.max(220, Math.round(width * payload.slide_height_cm / payload.slide_width_cm));
+      slide.style.height = height + "px";
+      slide.innerHTML = "";
+      const area = payload.photo_area || {};
+      const topH = (area.y_cm || 0) / payload.slide_height_cm * 100;
+      const areaH = (area.height_cm || 0) / payload.slide_height_cm * 100;
+      const chromeTop = document.createElement("div");
+      chromeTop.id = "chromeTop";
+      chromeTop.style.top = "0";
+      chromeTop.style.height = topH + "%";
+      slide.appendChild(chromeTop);
+      const chromeBottom = document.createElement("div");
+      chromeBottom.id = "chromeBottom";
+      chromeBottom.style.top = (topH + areaH) + "%";
+      chromeBottom.style.bottom = "0";
+      slide.appendChild(chromeBottom);
+      const bound = document.createElement("div");
+      bound.id = "photoBound";
+      bound.style.left = ((area.x_cm || 0) / payload.slide_width_cm * 100) + "%";
+      bound.style.top = topH + "%";
+      bound.style.width = ((area.width_cm || 0) / payload.slide_width_cm * 100) + "%";
+      bound.style.height = areaH + "%";
+      slide.appendChild(bound);
+
+      const right = document.createElement("div");
+      right.id = "right";
+      const rightX = (area.x_cm || 0) + (area.width_cm || 0);
+      right.style.left = (rightX / payload.slide_width_cm * 100) + "%";
+      const title = document.createElement("h2");
+      title.textContent = payload.right_title || "우측 표";
+      right.appendChild(title);
+      (payload.right_lines || []).forEach(function (line) {
+        const p = document.createElement("p");
+        p.textContent = line;
+        right.appendChild(p);
+      });
+      slide.appendChild(right);
+
+      (payload.slots || []).forEach(function (slot) {
+        const el = document.createElement("div");
+        el.className = "slot" + (Number(slot.id) === selectedId ? " selected" : "");
+        el.dataset.id = String(slot.id);
+        applyBox(el, slot, payload.slide_width_cm, payload.slide_height_cm);
+        if (slot.photo) {
+          const img = document.createElement("img");
+          img.src = slot.photo;
+          img.alt = slot.caption || "";
+          el.appendChild(img);
+        } else {
+          const empty = document.createElement("div");
+          empty.className = "empty";
+          empty.textContent = "사진을 넣으세요";
+          el.appendChild(empty);
+        }
+        const caption = document.createElement("div");
+        caption.className = "caption";
+        caption.textContent = slot.caption || ("슬롯 " + slot.id);
+        el.appendChild(caption);
+        ["nw", "n", "ne", "e", "se", "s", "sw", "w"].forEach(function (name) {
+          const handle = document.createElement("div");
+          handle.className = "handle " + name;
+          handle.dataset.handle = name;
+          el.appendChild(handle);
+        });
+        el.addEventListener("pointerdown", onPointerDown);
+        slide.appendChild(el);
+      });
+      setFrameHeight();
+    }
+
+    window.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("pointerup", onPointerUp);
+    window.addEventListener("pointercancel", onPointerUp);
+    window.addEventListener("message", function (event) {
+      if (!event.data || event.data.type !== "streamlit:render") return;
+      if (dragging) return;
+      render(event.data.args.payload);
+    });
+    window.addEventListener("load", function () {
+      sendMessage("streamlit:componentReady", { apiVersion: 1 });
+      setFrameHeight();
+    });
+    window.addEventListener("resize", setFrameHeight);
+  </script>
+</body>
+</html>

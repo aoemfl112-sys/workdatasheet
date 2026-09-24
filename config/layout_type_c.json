@@ -1,0 +1,162 @@
+{
+  "template_name": "layout_type_C",
+  "display_name": "슬롯 4개 · 2줄 배치",
+  "list_order": 3,
+  "source_example": "1. B800 서울向  화면표출기_시험절차서_Rev_C_250825.pptx",
+  "template_file": "templates/work_instruction.pptx",
+  "slide_index": 0,
+  "slide_width_cm": 33.867,
+  "slide_height_cm": 19.05,
+  "coordinate_unit": "cm",
+  "fit_mode": "contain",
+  "dpi_compress": 150,
+  "label_font_pt": 11,
+  "text_fields": [
+    {
+      "id": "test_title",
+      "label": "시험 제목",
+      "widget": "text_input",
+      "placeholder": "예: TEST – ETHERNET 지원",
+      "font_pt": 11,
+      "targets": [
+        {
+          "shape_name": "표 14",
+          "row": 1,
+          "col": 0
+        }
+      ]
+    },
+    {
+      "id": "procedure",
+      "label": "작업 순서 및 방법",
+      "widget": "text_area",
+      "placeholder": "사람이 직접 적습니다. 줄바꿈은 그대로 들어갑니다.",
+      "font_pt": 10,
+      "targets": [
+        {
+          "shape_name": "표 113",
+          "alt_names": [
+            "표 34"
+          ],
+          "row": 0,
+          "col": 1
+        }
+      ]
+    },
+    {
+      "id": "cautions",
+      "label": "작업 시 주의사항",
+      "widget": "text_area",
+      "placeholder": "한 줄에 한 항목씩 적습니다.",
+      "font_pt": 10,
+      "mode": "rows",
+      "targets": [
+        {
+          "shape_name": "표 22",
+          "mode": "rows",
+          "row_start": 0,
+          "col": 1,
+          "max_rows": 8
+        }
+      ]
+    },
+    {
+      "id": "ppe",
+      "label": "치공구 / 개인보호구",
+      "widget": "text_input",
+      "placeholder": "예: 작업복, 제전장갑, 제전화, 제전팔찌",
+      "font_pt": 10,
+      "targets": [
+        {
+          "shape_name": "표 30",
+          "row": 0,
+          "col": 0
+        }
+      ]
+    }
+  ],
+  "photo_area": {
+    "x_cm": 0.3,
+    "y_cm": 2.76,
+    "width_cm": 22.9,
+    "height_cm": 13.55,
+    "notes": "작업 도면 안쪽만. 우측 표(x≈23.26)·하단 관리항목(y≈16.44) 밖으로는 칸을 못 옮김"
+  },
+  "header_clear": [
+    {
+      "shape_name": "표 103",
+      "row": 0,
+      "col": 1
+    },
+    {
+      "shape_name": "표 103",
+      "row": 1,
+      "col": 1
+    },
+    {
+      "shape_name": "표 106",
+      "row": 1,
+      "col": 0
+    },
+    {
+      "shape_name": "표 106",
+      "row": 1,
+      "col": 2
+    }
+  ],
+  "notes": "작업 도면 안에 2x2로 네 칸을 둔다. PPT 양식은 3칸 템플릿을 쓰고, 칸 좌표만 JSON으로 지정한다.",
+  "slots": [
+    {
+      "id": 1,
+      "name": "SLOT_1",
+      "x_cm": 0.3,
+      "y_cm": 2.76,
+      "width_cm": 11.275,
+      "height_cm": 6.6,
+      "label_position": "bottom",
+      "label_height_cm": 0.7,
+      "label_x_cm": 0.3,
+      "label_width_cm": 11.275,
+      "label_y_cm": 9.36
+    },
+    {
+      "id": 2,
+      "name": "SLOT_2",
+      "x_cm": 11.925,
+      "y_cm": 2.76,
+      "width_cm": 11.275,
+      "height_cm": 6.6,
+      "label_position": "bottom",
+      "label_height_cm": 0.7,
+      "label_x_cm": 11.925,
+      "label_width_cm": 11.275,
+      "label_y_cm": 9.36
+    },
+    {
+      "id": 3,
+      "name": "SLOT_3",
+      "x_cm": 0.3,
+      "y_cm": 9.71,
+      "width_cm": 11.275,
+      "height_cm": 6.6,
+      "label_position": "top",
+      "label_height_cm": 0.7,
+      "label_x_cm": 0.3,
+      "label_width_cm": 11.275,
+      "label_y_cm": 9.01
+    },
+    {
+      "id": 4,
+      "name": "SLOT_4",
+      "x_cm": 11.925,
+      "y_cm": 9.71,
+      "width_cm": 11.275,
+      "height_cm": 6.6,
+      "label_position": "top",
+      "label_height_cm": 0.7,
+      "label_x_cm": 11.925,
+      "label_width_cm": 11.275,
+      "label_y_cm": 9.01
+    }
+  ]
+}
